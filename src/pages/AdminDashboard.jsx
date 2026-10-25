@@ -321,14 +321,44 @@ export default function AdminDashboard() {
   };
 
   // ==================== CÀI ĐẶT NỘI DUNG ====================
+  // Helper lấy URL video giới thiệu theo ngôn ngữ (hỗ trợ cả string và object { vi, en })
+  const getIntroVideoUrl = (langKey) => {
+    if (!siteContent?.introVideoUrl) return "";
+    if (typeof siteContent.introVideoUrl === "string") {
+      return langKey === "vi" ? siteContent.introVideoUrl : "";
+    }
+    if (typeof siteContent.introVideoUrl === "object" && siteContent.introVideoUrl !== null) {
+      return siteContent.introVideoUrl[langKey] || "";
+    }
+    return "";
+  };
+
+  const setIntroVideoUrl = (langKey, url) => {
+    const currentVi = getIntroVideoUrl("vi");
+    const currentEn = getIntroVideoUrl("en");
+    setSiteContent({
+      ...siteContent,
+      introVideoUrl: {
+        vi: langKey === "vi" ? url : currentVi,
+        en: langKey === "en" ? url : currentEn
+      }
+    });
+  };
+
   const handleSaveSiteContent = async (e) => {
     e.preventDefault();
     try {
+      const viVideo = getIntroVideoUrl("vi") ? getIntroVideoUrl("vi").trim() : "";
+      const enVideo = getIntroVideoUrl("en") ? getIntroVideoUrl("en").trim() : "";
+
       const normalizedContent = {
         ...siteContent,
         backgroundMusicUrl: normalizeAudioUrl(siteContent.backgroundMusicUrl),
         mascotImageUrl: normalizeAssetUrl(siteContent.mascotImageUrl),
-        introVideoUrl: siteContent.introVideoUrl ? siteContent.introVideoUrl.trim() : ""
+        introVideoUrl: {
+          vi: viVideo,
+          en: enVideo
+        }
       };
       await saveSiteContent(normalizedContent);
       if (typeof window !== "undefined") {
@@ -806,71 +836,144 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              {/* Phần 3: Cài đặt Video Giới Thiệu Trang Chủ (Hero Showcase Video) */}
+              {/* Phần 3: Cài đặt Video Giới Thiệu Trang Chủ (Hero Showcase Video) - Song Ngữ */}
               <div className="setting-card-box">
                 <div className="box-header-title">
                   <Video size={20} className="header-icon" />
-                  <h4>Video Giới Thiệu Trang Chủ (Hero Showcase Video)</h4>
+                  <h4>Video Giới Thiệu Trang Chủ (Hero Showcase Video - Song Ngữ Việt & Anh)</h4>
                 </div>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
-                  Video này sẽ phát khi du khách bấm nút "Xem Video Giới Thiệu" trên Banner Trang Chủ. Hỗ trợ file video MP4, WebM hoặc link Cloudinary.
+                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+                  Video này sẽ phát khi du khách bấm nút "Xem Video Giới Thiệu" trên Banner Trang Chủ. Hệ thống tự động chuyển đổi sang video tiếng Anh khi du khách bấm nút đổi ngôn ngữ sang EN.
                 </p>
-                <div className="upload-flex-row">
-                  <label className="file-upload-label-btn">
-                    <Upload size={16} />
-                    <span>Tải video lên Cloudinary</span>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      style={{ display: "none" }}
-                      onChange={(e) =>
-                        handleCloudinaryUpload(e.target.files?.[0], (url) => {
-                          setSiteContent({ ...siteContent, introVideoUrl: url });
-                        })
-                      }
-                    />
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Hoặc dán URL video (vd: https://... hoặc /assets/...)"
-                    value={siteContent.introVideoUrl || ""}
-                    onChange={(e) => setSiteContent({ ...siteContent, introVideoUrl: e.target.value })}
-                    className="form-input flex-1"
-                  />
-                  <button
-                    type="button"
-                    className="dash-btn secondary"
-                    style={{ fontSize: "0.8rem", whiteSpace: "nowrap" }}
-                    onClick={() =>
-                      setSiteContent({
-                        ...siteContent,
-                        introVideoUrl:
-                          "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/57/Ho_Chi_Minh_city_tour.webm/Ho_Chi_Minh_city_tour.webm.480p.vp9.webm"
-                      })
-                    }
-                  >
-                    Dùng video mẫu TP.HCM
-                  </button>
-                </div>
-                {siteContent.introVideoUrl && (
-                  <div className="media-preview-box" style={{ marginTop: "1rem" }}>
-                    <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem", color: "var(--text-muted)" }}>
-                      Xem trước video (Trình phát kiểm tra):
-                    </div>
-                    <video
-                      src={siteContent.introVideoUrl}
-                      controls
-                      playsInline
-                      style={{
-                        width: "100%",
-                        maxHeight: "280px",
-                        borderRadius: "var(--radius-md)",
-                        backgroundColor: "#000",
-                        objectFit: "contain"
-                      }}
-                    />
+
+                {/* Video Bản Tiếng Việt */}
+                <div style={{ marginBottom: "1.25rem", padding: "1rem", backgroundColor: "var(--bg-secondary)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem" }}>
+                    <span style={{ fontSize: "1.2rem" }}>🇻🇳</span>
+                    <strong style={{ fontSize: "0.95rem" }}>Video Bản Tiếng Việt (Vietnamese Video)</strong>
                   </div>
-                )}
+                  <div className="upload-flex-row">
+                    <label className="file-upload-label-btn">
+                      <Upload size={16} />
+                      <span>Tải video lên</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        style={{ display: "none" }}
+                        onChange={(e) =>
+                          handleCloudinaryUpload(e.target.files?.[0], (url) => {
+                            setIntroVideoUrl("vi", url);
+                          })
+                        }
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="URL video tiếng Việt (vd: https://res.cloudinary.com/... hoặc link online)"
+                      value={getIntroVideoUrl("vi")}
+                      onChange={(e) => setIntroVideoUrl("vi", e.target.value)}
+                      className="form-input flex-1"
+                    />
+                    <button
+                      type="button"
+                      className="dash-btn secondary"
+                      style={{ fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                      onClick={() =>
+                        setIntroVideoUrl(
+                          "vi",
+                          "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/57/Ho_Chi_Minh_city_tour.webm/Ho_Chi_Minh_city_tour.webm.480p.vp9.webm"
+                        )
+                      }
+                    >
+                      Dùng video mẫu
+                    </button>
+                  </div>
+                  {getIntroVideoUrl("vi") && (
+                    <div className="media-preview-box" style={{ marginTop: "0.75rem" }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.3rem", color: "var(--text-muted)" }}>
+                        Xem trước video Tiếng Việt:
+                      </div>
+                      <video
+                        src={getIntroVideoUrl("vi")}
+                        controls
+                        playsInline
+                        style={{
+                          width: "100%",
+                          maxHeight: "220px",
+                          borderRadius: "var(--radius-md)",
+                          backgroundColor: "#000",
+                          objectFit: "contain"
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Video Bản Tiếng Anh */}
+                <div style={{ padding: "1rem", backgroundColor: "var(--bg-secondary)", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem" }}>
+                    <span style={{ fontSize: "1.2rem" }}>🇬🇧</span>
+                    <strong style={{ fontSize: "0.95rem" }}>Video Bản Tiếng Anh (English Video)</strong>
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginLeft: "auto" }}>
+                      (Tự động phát khi du khách đổi sang EN)
+                    </span>
+                  </div>
+                  <div className="upload-flex-row">
+                    <label className="file-upload-label-btn">
+                      <Upload size={16} />
+                      <span>Tải video lên</span>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        style={{ display: "none" }}
+                        onChange={(e) =>
+                          handleCloudinaryUpload(e.target.files?.[0], (url) => {
+                            setIntroVideoUrl("en", url);
+                          })
+                        }
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="URL video tiếng Anh (vd: https://res.cloudinary.com/... hoặc link online)"
+                      value={getIntroVideoUrl("en")}
+                      onChange={(e) => setIntroVideoUrl("en", e.target.value)}
+                      className="form-input flex-1"
+                    />
+                    <button
+                      type="button"
+                      className="dash-btn secondary"
+                      style={{ fontSize: "0.8rem", whiteSpace: "nowrap" }}
+                      onClick={() =>
+                        setIntroVideoUrl(
+                          "en",
+                          "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/57/Ho_Chi_Minh_city_tour.webm/Ho_Chi_Minh_city_tour.webm.480p.vp9.webm"
+                        )
+                      }
+                    >
+                      Dùng video mẫu
+                    </button>
+                  </div>
+                  {getIntroVideoUrl("en") && (
+                    <div className="media-preview-box" style={{ marginTop: "0.75rem" }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.3rem", color: "var(--text-muted)" }}>
+                        Xem trước video Tiếng Anh:
+                      </div>
+                      <video
+                        src={getIntroVideoUrl("en")}
+                        controls
+                        playsInline
+                        style={{
+                          width: "100%",
+                          maxHeight: "220px",
+                          borderRadius: "var(--radius-md)",
+                          backgroundColor: "#000",
+                          objectFit: "contain"
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="modal-actions-bar" style={{ marginTop: "1.5rem" }}>

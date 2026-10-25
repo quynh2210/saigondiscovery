@@ -21,6 +21,26 @@ import { getSiteContent } from "../services/siteContentService";
 // Video mẫu chất lượng cao về du lịch và nhịp sống TP. Hồ Chí Minh
 const DEFAULT_SAMPLE_VIDEO = "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/57/Ho_Chi_Minh_city_tour.webm/Ho_Chi_Minh_city_tour.webm.480p.vp9.webm";
 
+// Helper trích xuất URL video theo ngôn ngữ đang chọn (hỗ trợ cả string và object { vi, en })
+function resolveVideoSrc(videoData, currentLang) {
+  if (!videoData) return DEFAULT_SAMPLE_VIDEO;
+  if (typeof videoData === "string") {
+    return videoData.trim() || DEFAULT_SAMPLE_VIDEO;
+  }
+  if (typeof videoData === "object" && videoData !== null) {
+    if (currentLang === "en") {
+      const enUrl = videoData.en && typeof videoData.en === "string" ? videoData.en.trim() : "";
+      const viUrl = videoData.vi && typeof videoData.vi === "string" ? videoData.vi.trim() : "";
+      return enUrl || viUrl || DEFAULT_SAMPLE_VIDEO;
+    } else {
+      const viUrl = videoData.vi && typeof videoData.vi === "string" ? videoData.vi.trim() : "";
+      const enUrl = videoData.en && typeof videoData.en === "string" ? videoData.en.trim() : "";
+      return viUrl || enUrl || DEFAULT_SAMPLE_VIDEO;
+    }
+  }
+  return DEFAULT_SAMPLE_VIDEO;
+}
+
 export default function CityHero({ onExploreClick, videoUrl }) {
   const { lang, t } = useLanguage();
   const [isVideoActive, setIsVideoActive] = useState(false);
@@ -36,7 +56,8 @@ export default function CityHero({ onExploreClick, videoUrl }) {
   });
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [activeVideoSrc, setActiveVideoSrc] = useState(videoUrl || DEFAULT_SAMPLE_VIDEO);
+  const [videoConfig, setVideoConfig] = useState(videoUrl || null);
+  const [activeVideoSrc, setActiveVideoSrc] = useState(() => resolveVideoSrc(videoUrl, lang));
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const videoRef = useRef(null);
@@ -45,15 +66,16 @@ export default function CityHero({ onExploreClick, videoUrl }) {
   // Tải URL video tùy biến từ siteContent và lắng nghe cập nhật real-time từ Admin
   useEffect(() => {
     getSiteContent().then((content) => {
-      if (content?.introVideoUrl || content?.heroVideoUrl) {
-        setActiveVideoSrc(content.introVideoUrl || content.heroVideoUrl);
+      const v = content?.introVideoUrl || content?.heroVideoUrl;
+      if (v) {
+        setVideoConfig(v);
       }
     }).catch(() => {});
 
     const handleContentUpdate = (e) => {
       const updatedUrl = e.detail?.introVideoUrl || e.detail?.heroVideoUrl;
       if (updatedUrl) {
-        setActiveVideoSrc(updatedUrl);
+        setVideoConfig(updatedUrl);
       }
     };
 
@@ -62,6 +84,18 @@ export default function CityHero({ onExploreClick, videoUrl }) {
       window.removeEventListener("hcmc:site-content-updated", handleContentUpdate);
     };
   }, []);
+
+  // Tự động chuyển đổi video khi người dùng đổi ngôn ngữ (VN/EN) hoặc khi Admin cập nhật URL mới
+  useEffect(() => {
+    const nextSrc = resolveVideoSrc(videoConfig, lang);
+    setActiveVideoSrc(nextSrc);
+    if (videoRef.current && isPlaying) {
+      const currTime = videoRef.current.currentTime || 0;
+      videoRef.current.src = nextSrc;
+      videoRef.current.currentTime = currTime;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [lang, videoConfig]);
 
   // Lắng nghe sự kiện thay đổi fullscreen của trình duyệt (ví dụ khi người dùng nhấn Esc)
   useEffect(() => {
