@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="hatGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#eab308" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Circle Background -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGrad)" filter="url(#shadow)" />
+  <circle cx="100" cy="100" r="85" fill="#ffffff" opacity="0.1" />
+
+  <!-- Body / Shirt -->
+  <path d="M60 170 Q100 150 140 170 L145 190 L55 190 Z" fill="#0284c7" />
+  <!-- Scarf / Guide necktie -->
+  <path d="M92 145 L108 145 L104 175 L96 175 Z" fill="#ef4444" />
+  <circle cx="100" cy="148" r="5" fill="#facc15" />
+
+  <!-- Head -->
+  <circle cx="100" cy="115" r="42" fill="#fed7aa" />
+
+  <!-- Cheeks Blush -->
+  <circle cx="78" cy="124" r="7" fill="#f43f5e" opacity="0.35" />
+  <circle cx="122" cy="124" r="7" fill="#f43f5e" opacity="0.35" />
+
+  <!-- Eyes with happy gleam -->
+  <circle cx="82" cy="112" r="5.5" fill="#1e293b" />
+  <circle cx="84" cy="110" r="2" fill="#ffffff" />
+  <circle cx="118" cy="112" r="5.5" fill="#1e293b" />
+  <circle cx="120" cy="110" r="2" fill="#ffffff" />
+
+  <!-- Eyebrows -->
+  <path d="M76 102 Q83 98 89 101" stroke="#475569" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M111 101 Q117 98 124 102" stroke="#475569" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+  <!-- Cheerful Smile -->
+  <path d="M88 126 Q100 138 112 126" stroke="#991b1b" stroke-width="3" fill="#dc2626" stroke-linecap="round" />
+  <path d="M92 127 Q100 133 108 127" fill="#ffffff" />
+
+  <!-- Non La (Vietnamese Conical Hat) -->
+  <polygon points="100,32 30,95 170,95" fill="url(#hatGrad)" filter="url(#shadow)" />
+  <!-- Hat Lines / Weaves -->
+  <path d="M100 32 L30 95 M100 32 L65 95 M100 32 L100 95 M100 32 L135 95 M100 32 L170 95" stroke="#ca8a04" stroke-width="1.2" opacity="0.6" />
+  <path d="M48 80 Q100 70 152 80" stroke="#ca8a04" stroke-width="1.2" fill="none" opacity="0.6" />
+  <path d="M65 65 Q100 57 135 65" stroke="#ca8a04" stroke-width="1.2" fill="none" opacity="0.6" />
+  <!-- Hat ribbon -->
+  <path d="M38 95 Q100 135 162 95" stroke="#059669" stroke-width="3" fill="none" />
+
+  <!-- Star badge on hat -->
+  <circle cx="100" cy="74" r="8" fill="#ef4444" />
+  <polygon points="100,68 102.5,73 107.5,73 103.5,76 105,81 100,78 95,81 96.5,76 92.5,73 97.5,73" fill="#facc15" />
+</svg>

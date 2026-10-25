@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Hàm trợ giúp kiểm tra người dùng có quyền Quản trị viên (Admin)
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // 1. Collection 'places' (Địa điểm du lịch)
+    // Khách du lịch chỉ được phép đọc các tài liệu đã xuất bản (published == true)
+    // Admin có toàn quyền đọc, tạo mới, chỉnh sửa và xóa
+    match /places/{placeId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 2. Collection 'venues' (Quán ăn & Quán nước)
+    // Khách du lịch chỉ đọc được các quán đã xuất bản
+    // Admin có toàn quyền quản lý
+    match /venues/{venueId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 3. Collection 'reviews' (Đánh giá địa điểm 5 sao, ảnh, caption)
+    // Khách du lịch có thể đọc mọi đánh giá
+    // Người dùng đã đăng nhập (Google/Email) được phép tạo đánh giá với UID của mình
+    // Chủ sở hữu bình luận hoặc Admin được phép xóa/chỉnh sửa
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+
+    // 4. Collection 'siteContent' (Nội dung giới thiệu chung, Hero, About)
+    match /siteContent/{contentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 5. Collection 'siteSettings' (Cài đặt website công khai)
+    match /siteSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 6. Metadata hệ thống (đồng bộ danh sách đã xóa, v.v.)
+    match /_metadata/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 7. Collection 'admins' (Danh sách UID tài khoản quản trị)
+    // Người dùng đã đăng nhập chỉ có thể tự kiểm tra quyền của chính mình
+    // Nghiêm cấm ghi từ frontend để chống nâng cấp quyền trái phép
+    match /admins/{adminId} {
+      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow write: if false; // Phải được cấp quyền qua Firebase Console
+    }
+  }
+}
